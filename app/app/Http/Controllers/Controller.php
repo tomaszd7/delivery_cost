@@ -1,0 +1,105 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Client;
+use App\Models\Order;
+use App\Models\OrderLine;
+use App\Models\Product;
+use App\Models\QuantityDeliveryCost;
+use App\Models\ValueDeliveryCost;
+use App\Models\WeightDeliveryCost;
+use App\Services\BasketCostService;
+use App\Services\DeliveryCostService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Foundation\Bus\DispatchesJobs;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Routing\Controller as BaseController;
+
+class Controller extends BaseController
+{
+    use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
+
+    public function index() {
+
+        /**
+         * comment below line to run test from database
+         */
+        return $this->testManually();
+
+        // test with database order id = 1
+        $order = Order::with(['client', 'lines'])->find(1);
+
+        $basketService = new BasketCostService($order->client, $order->payment);
+
+        $deliveryCostService = new DeliveryCostService($order, $basketService);
+
+        $cost = $deliveryCostService->getCost();
+
+        return view('cost', [
+            'valueDeliveryCosts' => ValueDeliveryCost::with('client')->get(),
+            'weightDeliveryCosts' => WeightDeliveryCost::with('client')->get(),
+            'quantityDeliveryCosts' => QuantityDeliveryCost::with('client')->get(),
+            'order' => $order,
+            'cost' => $cost
+        ]);
+    }
+
+    private function testManually() {
+
+        $payment = 'cash';
+
+        $client = Client::whereName('Client_1')->first();
+
+        $order = new Order();
+        $order->payment = $payment;
+        $order->client()->associate($client);
+
+        $product1 = Product::whereName('Product_1')->first();
+        $orderLine1 = new OrderLine();
+        $orderLine1->product()->associate($product1);
+        $orderLine1->order()->associate($order);
+        $orderLine1->quantity = 1;
+        $orderLine1->price = 1;
+
+        $product2 = Product::whereName('Product_2')->first();
+        $orderLine2 = new OrderLine();
+        $orderLine2->product()->associate($product2);
+        $orderLine2->order()->associate($order);
+        $orderLine2->quantity = 2;
+        $orderLine2->price = 1;
+
+        $product3 = Product::whereName('Product_3')->first();
+        $orderLine3 = new OrderLine();
+        $orderLine3->product()->associate($product3);
+        $orderLine3->order()->associate($order);
+        $orderLine3->quantity = 1;
+        $orderLine3->price = 1;
+
+        $product4 = Product::whereName('Product_4')->first();
+        $orderLine4 = new OrderLine();
+        $orderLine4->product()->associate($product4);
+        $orderLine4->order()->associate($order);
+        $orderLine4->quantity = 1;
+        $orderLine4->price = 1;
+
+        $order->lines->add($orderLine1);
+        $order->lines->add($orderLine2);
+        $order->lines->add($orderLine3);
+        $order->lines->add($orderLine4);
+
+        $basketService = new BasketCostService($client, $payment);
+
+        $deliveryCostService = new DeliveryCostService($order, $basketService);
+
+        $cost = $deliveryCostService->getCost();
+
+        return view('cost', [
+            'valueDeliveryCosts' => ValueDeliveryCost::with('client')->get(),
+            'weightDeliveryCosts' => WeightDeliveryCost::with('client')->get(),
+            'quantityDeliveryCosts' => QuantityDeliveryCost::with('client')->get(),
+            'order' => $order,
+            'cost' => $cost
+        ]);
+    }
+}
