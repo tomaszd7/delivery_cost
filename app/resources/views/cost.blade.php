@@ -95,70 +95,74 @@
                     </tbody>
                 </table>
 
-                <h4>Zlecenie</h4>
+                @foreach ($results as $result)
+                    @php
+                        $order = $result['order'];
+                        $cost = $result['cost'];
+                    @endphp
+                    <h4 class="alert alert-info mt-5">{{ $result['description'] }}</h4>
 
-                <table class="table table-bordered table-sm">
-                    <thead class="thead-light">
-                    <tr>
-                        <th scope="col">Numer</th>
-                        <th scope="col">Client name</th>
-                        <th scope="col">Payment</th>
-                    </tr>
-                    </thead>
-                    <tbody>
+                    <table class="table table-bordered table-sm">
+                        <thead class="thead-light">
+                        <tr>
+                            <th scope="col">Numer</th>
+                            <th scope="col">Client name</th>
+                            <th scope="col">Payment</th>
+                        </tr>
+                        </thead>
+                        <tbody>
                         <tr>
                             <td class="text-right">{{ $order->id }}</td>
                             <td class="text-center">{{ $order->client->name }}</td>
                             <td class="text-center">{{ $order->payment }}</td>
                         </tr>
 
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
 
-                <table class="table table-bordered table-sm">
-                    <thead class="thead-light">
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Product name</th>
-                        <th scope="col">Description</th>
-                        <th scope="col">Weight</th>
-                        <th scope="col">Quantity</th>
-                        <th scope="col">Price</th>
-                        <th scope="col">calc_value</th>
-                        <th scope="col">calc_weight</th>
-                        <th scope="col">calc_quantity</th>
-                        <th scope="col">calc_individual</th>
-                        <th scope="col">Cost per piece</th>
-                        <th scope="col">Flat cost</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach ($order->lines as $line)
+                    <table class="table table-bordered table-sm">
+                        <thead class="thead-light">
                         <tr>
-                            <th scope="row">{{ $loop->iteration }}</th>
-                            <td class="text-left text-nowrap">{{ $line->product->name }}</td>
-                            <td class="text-left text-nowrap">{{ $line->product->description }}</td>
-                            <td class="text-right">{{ $line->product->weight }}</td>
-                            <td class="text-right">{{ $line->quantity }}</td>
-                            <td class="text-right">{{ $line->price }}</td>
-                            <td class="text-center">{{ $line->product->calculate_value_cost }}</td>
-                            <td class="text-center">{{ $line->product->calculate_weight_cost }}</td>
-                            <td class="text-center">{{ $line->product->calculate_quantity_cost }}</td>
-                            <td class="text-center">{{ $line->product->calculate_individual_cost }}</td>
-                            <td class="text-right">{{ $line->product->cost_per_piece }}</td>
-                            <td class="text-right">{{ $line->product->flat_cost }}</td>
+                            <th scope="col">#</th>
+                            <th scope="col">Product name</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Weight</th>
+                            <th scope="col">Quantity</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">calc_value</th>
+                            <th scope="col">calc_weight</th>
+                            <th scope="col">calc_quantity</th>
+                            <th scope="col">calc_individual</th>
+                            <th scope="col">Cost per piece</th>
+                            <th scope="col">Flat cost</th>
                         </tr>
-                    @endforeach
+                        </thead>
+                        <tbody>
+                        @foreach ($order->lines as $line)
+                            <tr>
+                                <th scope="row">{{ $loop->iteration }}</th>
+                                <td class="text-left text-nowrap">{{ $line->product->name }}</td>
+                                <td class="text-left text-nowrap">{{ $line->product->description }}</td>
+                                <td class="text-right">{{ $line->product->weight }}</td>
+                                <td class="text-right">{{ $line->quantity }}</td>
+                                <td class="text-right">{{ $line->price }}</td>
+                                <td class="text-center">{{ $line->product->calculate_value_cost }}</td>
+                                <td class="text-center">{{ $line->product->calculate_weight_cost }}</td>
+                                <td class="text-center">{{ $line->product->calculate_quantity_cost }}</td>
+                                <td class="text-center">{{ $line->product->calculate_individual_cost }}</td>
+                                <td class="text-right">{{ $line->product->cost_per_piece }}</td>
+                                <td class="text-right">{{ $line->product->flat_cost }}</td>
+                            </tr>
+                        @endforeach
 
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
 
-                <h4>Wyliczony koszt</h4>
+                    <div class="alert alert-success" role="alert">
+                        Wyliczony koszt: {{ number_format($cost, 2)}}
+                    </div>
 
-                <div class="alert alert-success" role="alert">
-                    {{ number_format($cost, 2)}}
-                </div>
-
+                @endforeach
             </div>
         </div>
     </div>

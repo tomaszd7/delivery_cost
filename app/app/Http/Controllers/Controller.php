@@ -12,6 +12,7 @@ use App\Models\WeightDeliveryCost;
 use App\Repository\Repository;
 use App\Services\BasketCostService;
 use App\Services\DeliveryCostService;
+use Illuminate\Contracts\View\Factory;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -23,36 +24,42 @@ class Controller extends BaseController
 
     /**
      * @param Repository $repository
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return Factory|\Illuminate\View\View
      */
     public function index(Repository $repository) {
-
-        /**
-         * comment below line to run test from database
-         */
-        return $this->testManually($repository);
 
         // test with database order id = 1
         $order = Order::with(['client', 'lines'])->find(1);
 
-        $basketService = new BasketCostService($order->client, $order->payment, $repository);
+        $cost = $this->getDeliveryCostHelper($order, $repository);
 
-        $deliveryCostService = new DeliveryCostService($order, $basketService);
-
-        $cost = $deliveryCostService->getCost();
+        $results = [
+            $this->testManually($repository),
+            ['description' => 'Database test ', 'order' => $order, 'cost' => $cost],
+        ];
 
         return view('cost', [
             'valueDeliveryCosts' => ValueDeliveryCost::with('client')->get(),
             'weightDeliveryCosts' => WeightDeliveryCost::with('client')->get(),
             'quantityDeliveryCosts' => QuantityDeliveryCost::with('client')->get(),
-            'order' => $order,
-            'cost' => $cost
+            'results' => $results
         ]);
     }
 
     /**
+     * @param Order $order
      * @param Repository $repository
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return float|int
+     */
+    private function getDeliveryCostHelper(Order $order, Repository $repository) {
+        $basketService = new BasketCostService($order->client, $order->payment, $repository);
+        $deliveryCostService = new DeliveryCostService($order, $basketService);
+        return $deliveryCostService->getCost();
+    }
+
+    /**
+     * @param Repository $repository
+     * @return array
      */
     private function testManually(Repository $repository) {
 
@@ -97,18 +104,8 @@ class Controller extends BaseController
         $order->lines->add($orderLine3);
         $order->lines->add($orderLine4);
 
-        $basketService = new BasketCostService($client, $payment, $repository);
+        $cost = $this->getDeliveryCostHelper($order, $repository);
 
-        $deliveryCostService = new DeliveryCostService($order, $basketService);
-
-        $cost = $deliveryCostService->getCost();
-
-        return view('cost', [
-            'valueDeliveryCosts' => ValueDeliveryCost::with('client')->get(),
-            'weightDeliveryCosts' => WeightDeliveryCost::with('client')->get(),
-            'quantityDeliveryCosts' => QuantityDeliveryCost::with('client')->get(),
-            'order' => $order,
-            'cost' => $cost
-        ]);
+        return ['description' => 'Manual test ', 'order' => $order, 'cost' => $cost];
     }
 }
