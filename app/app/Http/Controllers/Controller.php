@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\QuantityDeliveryCost;
 use App\Models\ValueDeliveryCost;
 use App\Models\WeightDeliveryCost;
+use App\Repository\Repository;
 use App\Services\BasketCostService;
 use App\Services\DeliveryCostService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -20,17 +21,21 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    public function index() {
+    /**
+     * @param Repository $repository
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function index(Repository $repository) {
 
         /**
          * comment below line to run test from database
          */
-        return $this->testManually();
+        return $this->testManually($repository);
 
         // test with database order id = 1
         $order = Order::with(['client', 'lines'])->find(1);
 
-        $basketService = new BasketCostService($order->client, $order->payment);
+        $basketService = new BasketCostService($order->client, $order->payment, $repository);
 
         $deliveryCostService = new DeliveryCostService($order, $basketService);
 
@@ -45,7 +50,11 @@ class Controller extends BaseController
         ]);
     }
 
-    private function testManually() {
+    /**
+     * @param Repository $repository
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    private function testManually(Repository $repository) {
 
         $payment = 'cash';
 
@@ -88,7 +97,7 @@ class Controller extends BaseController
         $order->lines->add($orderLine3);
         $order->lines->add($orderLine4);
 
-        $basketService = new BasketCostService($client, $payment);
+        $basketService = new BasketCostService($client, $payment, $repository);
 
         $deliveryCostService = new DeliveryCostService($order, $basketService);
 
